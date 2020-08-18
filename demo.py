@@ -3,7 +3,7 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy as np
-import cPickle as pickle
+import pickle
 from zie import fit_emb
 from zie import evaluate_emb
 from random_data import rand_data
@@ -70,7 +70,7 @@ def experiment():
 
     # Step 5: Dump out embedding vectors
     print('Saving embedding vectors ...') 
-    pickle.dump(emb_model['alpha'], file('embedding_vectors.pkl', 'wb'))
+    pickle.dump(emb_model['alpha'], open('embedding_vectors.pkl', 'wb'))
      
 
 if __name__ == '__main__':

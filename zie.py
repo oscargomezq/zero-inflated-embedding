@@ -4,7 +4,9 @@ from __future__ import print_function
 
 import numpy as np
 import math
-import tensorflow as tf
+# import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior() 
 import collections
 from scipy import sparse
 import sys
@@ -25,7 +27,7 @@ def separate_valid(reviews, frac):
 def validate(valid_reviews, session, inputs, outputs):
     valid_size = valid_reviews['scores'].shape[0]
     ins_llh = np.zeros(valid_size)
-    for iv in xrange(valid_size): 
+    for iv in range(valid_size): 
         atts, indices, labels = generate_batch(valid_reviews, iv)
         if indices.size <= 1:
             raise Exception('in validation set: row %d has only less than 2 non-zero entries' % iv)
@@ -65,7 +67,7 @@ def fit_emb(reviews, config):
         train_logg = np.zeros([int(config['max_iter'] / nprint) + 1, 3]) 
 
         review_size = reviews['scores'].shape[0]
-        for step in xrange(1, config['max_iter'] + 1):
+        for step in range(1, config['max_iter'] + 1):
 
             rind = np.random.choice(review_size)
             atts, indices, labels = generate_batch(reviews, rind)
@@ -129,7 +131,7 @@ def evaluate_emb(reviews, model, config):
         pos_llh_array = [] 
         review_size = reviews['scores'].shape[0]
         print('Calculating llh of instances...')
-        for step in xrange(review_size):
+        for step in range(review_size):
             att, index, label = generate_batch(reviews, step)
             if index.size <= 1: # neglect views with only one entry
                 continue

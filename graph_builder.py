@@ -1,8 +1,8 @@
-
 # import tensorflow as tf
 import numpy as np
 import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior() 
+
 
 class GraphBuilder:
     def __init__(self): 
@@ -147,9 +147,9 @@ class GraphBuilder:
         if training:
             sum_llh = tf.reduce_sum(llh_nonz) + tf.reduce_mean(llh_zero) * (float(movie_size) - nnz)
 
-            # training does not keep llh for each entry
+            # training does not keep llh for each entry 
             ins_llh = None 
-            pos_llh = None
+            pos_llh = None 
         else:
             ins_logprob = tf.concat([llh_zero, llh_nonz], axis=0)
             ins_ind = tf.concat([sind, self.input_ind], axis=0)
@@ -185,6 +185,8 @@ class GraphBuilder:
     def initialize_model(self, review_size, movie_size, dim_atts, config, init_model=None, training=True):
 
         embedding_size = config['K']
+        # placeholders are values that are unassigned and that will be initialized by the session when run
+        # will get the values of your dataset that passed in the run() function
         self.input_att = tf.placeholder(tf.float32, shape=[dim_atts])
         self.input_ind = tf.placeholder(tf.int32, shape=[None])
         self.input_label = tf.placeholder(tf.int32, shape=[None])
@@ -220,11 +222,13 @@ class GraphBuilder:
         
         return review_size, movie_size, dim_atts
 
+
     def logsumexp(self, vec1, vec2):
         flag = tf.greater(vec1, vec2)
         maxv = tf.where(flag, vec1, vec2)
         lse = tf.log(tf.exp(vec1 - maxv) + tf.exp(vec2 - maxv)) + maxv
         return lse
+
 
     def gammaln(self, x):
         # fast approximate gammaln from paul mineiro
@@ -238,3 +242,4 @@ class GraphBuilder:
         y = np.log(np.exp(x) - 1)
         return y 
    
+

@@ -66,7 +66,7 @@ def fit_emb(reviews, config, prt=True):
 			and larger updates (i.e. high learning rates) for parameters associated with infrequent features. 
 			For this reason, it is well-suited for dealing with sparse data. 
 			From https://ruder.io/optimizing-gradient-descent/index.html#adagrad'''
-		# run gradient step (compute and apply gradients)
+		# gradient step (compute and apply gradients)
 		optimizer = tf.train.AdagradOptimizer(0.05).minimize(outputs['objective']) # paper says learning_rate is 0.1 (?)
 		init = tf.global_variables_initializer()
 
@@ -79,19 +79,19 @@ def fit_emb(reviews, config, prt=True):
 		# We must initialize all variables before we use them.
 		init.run()
 
-		nprint = 5000 # print loss every nprint steps / iterations
+		nprint = 5000 # print loss every nprint steps
 		val_accum = np.array([0.0, 0.0]) # validation sums of training llh and objective
-		train_logg = np.zeros([int(config['max_iter'] / nprint) + 1, 3]) # log of llh, obj, and debug llh at every nprint steps
+		train_logg = np.zeros([int(config['max_iter'] / nprint) + 1, 3]) # logg of llh, obj, and debug llh at every nprint steps
 
 		review_size = reviews['scores'].shape[0] # the subset of training data not used for validations
-												 # contains both scores and features (covariates)
+												 # contains both scores and features (atts, covariates)
 
 		# main training loop, max_iter steps done
 		for step in range(1, config['max_iter'] + 1):
 
 			rind = np.random.choice(review_size)
 			atts, indices, labels = generate_batch(reviews, rind) # random row from training set
-			if indices.size <= 1: # neglect views with only one entry
+			if indices.size <= 1: # neglect rows with only one entry
 				raise Exception('Row %d of the data has only one non-zero entry.' % rind)
 			feed_dict = {inputs['input_att']: atts, inputs['input_ind']: indices, inputs['input_label']: labels}
 
@@ -178,7 +178,8 @@ def evaluate_emb(reviews, model, config):
 		return llh_array, pos_llh_array
 
 
-def generate_batch(reviews, rind, prt=False):
+def generate_batch(reviews, rind, prt=True):
+	# get random row from reviews
 	atts = reviews['atts'][rind, :]
 	_, ind, rate = sparse.find(reviews['scores'][rind, :]) # rows, cols, and values of nonzero entries
 	# ind corresponds to column index (within the score row)

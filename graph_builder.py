@@ -5,22 +5,23 @@ tf.disable_v2_behavior()
 
 
 class GraphBuilder:
+
     def __init__(self): 
         
-        self.alpha = None
-        self.rho = None
+        self.alpha = None 	# embedding vectors
+        self.rho = None   	# context vectors 
 
-        self.invmu = None
-        self.weight = None
+        self.invmu = None 	# ?
+        self.weight = None 	# weights for exposure prob.
 
-        self.nbr = None
+        self.nbr = None 	# ?
 
-
-        self.input_att = None
-        self.input_ind = None
-        self.input_label = None
+        self.input_att = None 	# values of features
+        self.input_ind = None   # indices of non-zero ratings in row
+        self.input_label = None # ratings at the input_indices
 
         self.debug = []
+
 
     def logprob_nonz(self, alpha_emb, config, training=True):
 
@@ -123,15 +124,16 @@ class GraphBuilder:
         return logprob, sind, [tf.reduce_mean(logprob_z)]
 
 
-    def construct_model_graph(self, reviews, config, init_model=None, training=True):
+    def construct_model_graph(self, reviews, config, init_model=None, training=True, prt=True):
 
         review_size, movie_size, dim_atts = self.get_problem_sizes(reviews, config)
         self.initialize_model(review_size, movie_size, dim_atts, config, init_model, training)
+        if prt: print("No. of reviews:", review_size, "- No. of movies:", movie_size, "- No. of features:", dim_atts)
         
         # number of non-zeros
         nnz = tf.cast(tf.shape(self.input_label)[0], tf.float32)
     
-        #prepare embedding of context 
+        # prepare embedding of context 
         rate = tf.cast(self.input_label, tf.float32)
         alpha_select = tf.gather(self.alpha, self.input_ind, name='context_alpha')
         alpha_weighted = alpha_select * tf.expand_dims(rate, 1)
@@ -156,7 +158,7 @@ class GraphBuilder:
             ins_llh = tf.scatter_update(tf.Variable(tf.zeros(movie_size)), ins_ind, ins_logprob)
             sum_llh = tf.reduce_sum(llh_nonz) + tf.reduce_sum(llh_zero) 
 
-            pos_llh = emb_logp_nz - tf.log(1 - tf.exp(emb_logp_z))
+            pos_llh = emb_logp_nz - tf.log(1 - tf.exp(emb_logp_z)) # predictive log-likelihood for non-zero entries
 
         # random choose weight vectors to get a noisy estimation of the regularization term
         rsize = int(movie_size * 0.1)
@@ -187,9 +189,9 @@ class GraphBuilder:
         embedding_size = config['K']
         # placeholders are values that are unassigned and that will be initialized by the session when run
         # will get the values of your dataset that passed in the run() function
-        self.input_att = tf.placeholder(tf.float32, shape=[dim_atts])
-        self.input_ind = tf.placeholder(tf.int32, shape=[None])
-        self.input_label = tf.placeholder(tf.int32, shape=[None])
+        self.input_att = tf.placeholder(tf.float32, shape=[dim_atts]) # values of features
+        self.input_ind = tf.placeholder(tf.int32, shape=[None]) 	  # indices of non-zero ratings in row
+        self.input_label = tf.placeholder(tf.int32, shape=[None]) 	  # ratings at the input_indices
     
         if training: 
             if init_model == None:
